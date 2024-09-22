@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { AppError } from "../errors/AppError";
+import { ConflictError } from "../errors/ConflictError";
+import { NotFoundError } from "../errors/NotFoundError";
+import { UnauthorizedError } from "../errors/UnauthorizedError";
 
 const errorHandler = (
   err: Error,
@@ -12,8 +14,13 @@ const errorHandler = (
   let message = err.message;
   let isOperational = false;
 
-  if (err instanceof AppError) {
+  if (
+    err instanceof ConflictError ||
+    err instanceof NotFoundError ||
+    err instanceof UnauthorizedError
+  ) {
     statusCode = err.statusCode;
+    message = err.message;
     isOperational = err.isOperational;
   }
 
