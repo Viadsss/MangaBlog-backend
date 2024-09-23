@@ -26,6 +26,7 @@ async function main() {
         email: ownerEmail,
         username: ownerUsername,
         password: hashPassword,
+        role: "OWNER",
       },
     });
 
