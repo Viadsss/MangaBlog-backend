@@ -10,6 +10,10 @@ export const getUserById = async (id: number) => {
   return await prisma.user.findUnique({ where: { id } });
 };
 
+export const getUserByemail = async (email: string) => {
+  return await prisma.user.findUnique({ where: { email } });
+};
+
 export const createUser = async (data: Prisma.UserCreateInput) => {
   return await prisma.user.create({ data });
 };
@@ -42,5 +46,12 @@ export const updatePassword = async (id: number, password: string) => {
   return await prisma.user.update({
     where: { id },
     data: { password: hashedPassword },
+  });
+};
+
+export const updateRoleToAdmin = async (id: number) => {
+  return await prisma.user.update({
+    where: { id },
+    data: { role: "ADMIN" },
   });
 };
