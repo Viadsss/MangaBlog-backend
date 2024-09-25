@@ -37,31 +37,14 @@ model Post {
   id        Int      @id @default(autoincrement())
   title     String
   content   String
+  bannerUrl String?
   authorId  Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
   author    User     @relation(fields: [authorId], references: [id])
-  genres    PostGenre[]
   comments  Comment[]
   likes     Like[]
-}
-
-model Genre {
-  id    Int    @id @default(autoincrement())
-  name  String @unique
-  
-  posts PostGenre[]
-}
-
-model PostGenre {
-  postId  Int
-  genreId Int
-  
-  post    Post   @relation(fields: [postId], references: [id])
-  genre   Genre  @relation(fields: [genreId], references: [id])
-  
-  @@id([postId, genreId])  // Composite primary key
 }
 
 model Comment {
