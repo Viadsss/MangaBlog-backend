@@ -8,8 +8,8 @@
 
 ```json
 {
-  "email": string,
-  "password": string
+  "email": "johndoe123@gmail.com",
+  "password": "password123"
 }
 ```
 
@@ -17,7 +17,7 @@
   - 200 OK:
   ```json
   {
-    "token": string
+    "token": "JWT Token here"
   }
   ```
   - 401 Unauthorized:
@@ -36,10 +36,10 @@
 
 ```json
 {
-  "username": string,
-  "email": string,
-  "password": string,
-  "confirmPassword": string
+  "username": "johndoe",
+  "email": "johndoe123@gmail.com",
+  "password": "password123",
+  "confirmPassword": "password123"
 }
 ```
 
@@ -47,7 +47,7 @@
   - 201 Created:
   ```json
   {
-    "token": string
+    "token": "JWT Token here"
   }
   ```
   - 400 Bad Request:
@@ -55,11 +55,25 @@
   {
     "errors": [
       {
-        "type": string,
-        "value": string,
-        "msg": string,
-        "path": string,
-        "location": string
+        "type": "field",
+        "value": "janesmsith++",
+        "msg": "Username must contain only letters and numbers",
+        "path": "username",
+        "location": "body"
+      },
+      {
+        "type": "field",
+        "value": "janesmith456gmail.com",
+        "msg": "Invalid email address",
+        "path": "email",
+        "location": "body"
+      },
+      {
+        "type": "field",
+        "value": "password456",
+        "msg": "Passwords do not match",
+        "path": "confirmPassword",
+        "location": "body"
       }
     ]
   }
