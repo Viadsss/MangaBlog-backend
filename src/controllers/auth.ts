@@ -1,10 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 import * as userService from "../services/users";
+import * as supabaseService from "../services/supabase";
 import bcrypt from "bcryptjs";
 import { body, validationResult } from "express-validator";
 import { ConflictError } from "../errors/ConflictError";
 import jwt from "jsonwebtoken";
 import { UnauthorizedError } from "../errors/UnauthorizedError";
+import upload from "../middlewares/uploadMiddleware";
 
 const validateSignup = [
   body("username")
@@ -38,6 +40,12 @@ const validateSignup = [
       }
       return true;
     }),
+
+  body("profileUrl")
+    .optional()
+    .trim()
+    .isURL()
+    .withMessage("Profile URL is Invalid"),
 ];
 
 const validateLogin = [
@@ -52,6 +60,7 @@ const validateLogin = [
 ];
 
 export const signup = [
+  upload.single("profileImage"),
   ...validateSignup,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -61,6 +70,7 @@ export const signup = [
       }
 
       const { username, email, password } = req.body;
+      const profileImage = req.file;
 
       const userNameExists = await userService.checkUsernameExists(username);
       if (userNameExists) {
@@ -73,8 +83,19 @@ export const signup = [
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
-      const data = { username, email, password: hashedPassword };
-      const newUser = await userService.createUser(data);
+      const userData = { username, email, password: hashedPassword };
+      const newUser = await userService.createUser(userData);
+
+      let profileUrl: string | null = null;
+
+      if (profileImage != null) {
+        profileUrl = await supabaseService.uploadProfileImage(
+          newUser.id,
+          profileImage
+        );
+
+        await userService.updateProfileUrl(newUser.id, profileUrl);
+      }
 
       const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET!, {
         expiresIn: "1d",
