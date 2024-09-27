@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import prisma from "../prismaClient";
+import prisma from "../clients/prismaClient";
 import bcrypt from "bcryptjs";
 
 export const getAllUsers = async () => {
@@ -32,6 +32,13 @@ export const checkEmailExists = async (email: string) => {
   });
 
   return user !== null;
+};
+
+export const updateProfileUrl = async (id: number, profileUrl: string) => {
+  return await prisma.user.update({
+    where: { id },
+    data: { profileUrl },
+  });
 };
 
 export const updateUsername = async (id: number, username: string) => {
