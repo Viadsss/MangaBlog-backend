@@ -86,15 +86,10 @@ export const signup = [
       const userData = { username, email, password: hashedPassword };
       const newUser = await userService.createUser(userData);
 
-      let profileUrl: string | null = null;
-
-      if (profileImage != null) {
-        profileUrl = await supabaseService.uploadProfileImage(
-          newUser.id,
-          profileImage
-        );
-
-        await userService.updateProfileUrl(newUser.id, profileUrl);
+      if (profileImage) {
+        await supabaseService.uploadProfileImage(newUser.id, profileImage);
+        const url = await supabaseService.retrievePublicUrl(newUser.id);
+        await userService.updateProfileUrl(newUser.id, url);
       }
 
       const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET!, {

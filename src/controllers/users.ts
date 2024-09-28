@@ -1,15 +1,17 @@
 import { NextFunction, Request, Response } from "express";
 import * as userService from "../services/users";
+import * as supabaseService from "../services/supabase";
 import bcrypt from "bcryptjs";
 import { body, validationResult } from "express-validator";
 import { NotFoundError } from "../errors/NotFoundError";
 import { UnauthorizedError } from "../errors/UnauthorizedError";
+import upload from "../middlewares/uploadMiddleware";
+import { ConflictError } from "../errors/ConflictError";
 
-const validateUsernameUpdate = [
+const validateUserUpdate = [
   body("username")
+    .optional()
     .trim()
-    .notEmpty()
-    .withMessage("Username is required")
     .isAlphanumeric()
     .withMessage("Username must contain only letters and numbers")
     .isLength({ min: 5, max: 20 })
@@ -24,6 +26,16 @@ const validatePasswordUpdate = [
     .withMessage("New password is required")
     .isLength({ min: 8 })
     .withMessage("New password must be at least 8 characters long"),
+
+  body("confirmPassword")
+    .notEmpty()
+    .withMessage("Confirm password is required")
+    .custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error("Passwords do not match");
+      }
+      return true;
+    }),
 ];
 
 export const getAllUsers = async (
@@ -39,8 +51,9 @@ export const getAllUsers = async (
   }
 };
 
-export const updateUsername = [
-  ...validateUsernameUpdate,
+export const updateUser = [
+  upload.single("profileImage"),
+  ...validateUserUpdate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const errors = validationResult(req);
@@ -49,10 +62,36 @@ export const updateUsername = [
       }
 
       const id = parseInt(req.params.id);
-      const username = req.body.username;
+      const { username } = req.body;
+      const profileImage = req.file;
+      const user = await userService.getUserById(id);
+      if (!user) throw new NotFoundError("User not found");
 
-      const updatedUser = await userService.updateUsername(id, username);
-      res.json(updatedUser);
+      let updated = false;
+
+      if (username && username !== user.username) {
+        const usernameExists = await userService.checkUsernameExists(username);
+        if (usernameExists) throw new ConflictError("Username already exists");
+        await userService.updateUsername(id, username);
+        updated = true;
+      }
+
+      if (profileImage) {
+        if (user.profileUrl) {
+          await supabaseService.replaceProfileImage(id, profileImage);
+        } else {
+          await supabaseService.uploadProfileImage(id, profileImage);
+          const profileUrl = await supabaseService.retrievePublicUrl(id);
+          await userService.updateProfileUrl(id, profileUrl);
+        }
+        updated = true;
+      }
+
+      if (!updated) {
+        return res.json({ message: "No changes made", updated: false });
+      }
+
+      res.json({ message: "User profile updated successfully", updated: true });
     } catch (err) {
       next(err);
     }
@@ -99,11 +138,13 @@ export const updateRoleToAdmin = async (
     }
 
     if (user.role === "ADMIN") {
-      return res.json({ message: "User is already an admin.", user });
+      return res.json({ message: "User is already an admin" });
     }
 
-    const updatedUser = await userService.updateRoleToAdmin(id);
-    res.json({ message: "User role updated successfully", user: updatedUser });
+    await userService.updateRoleToAdmin(id);
+    res.json({
+      message: "User role updated successfully",
+    });
   } catch (err) {
     next(err);
   }
