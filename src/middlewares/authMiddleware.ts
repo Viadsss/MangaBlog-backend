@@ -7,6 +7,7 @@ import {
 } from "passport-jwt";
 import { getUserById } from "../services/users";
 import { User } from "@prisma/client";
+import { ForbiddenError } from "../errors/ForbiddenError";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -40,7 +41,9 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   ) {
     return next();
   } else {
-    return res.status(403).json({ message: "Forbidden, Admins only" });
+    throw new ForbiddenError(
+      "You do not have access to this resource (Admin Only)"
+    );
   }
 };
 
@@ -50,6 +53,8 @@ export const isOwner = (req: Request, res: Response, next: NextFunction) => {
   if (req.isAuthenticated() && user.role === "OWNER") {
     return next();
   } else {
-    return res.status(403).json({ message: "Forbidden, Owner only" });
+    throw new ForbiddenError(
+      "You do not have access to this resource (Owner Only)"
+    );
   }
 };
