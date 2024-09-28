@@ -3,7 +3,16 @@ import prisma from "../clients/prismaClient";
 import bcrypt from "bcryptjs";
 
 export const getAllUsers = async () => {
-  return await prisma.user.findMany();
+  return await prisma.user.findMany({
+    select: {
+      id: true,
+      username: true,
+      email: true,
+      profileUrl: true,
+      role: true,
+      createdAt: true,
+    },
+  });
 };
 
 export const getUserById = async (id: number) => {
