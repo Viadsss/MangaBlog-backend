@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { ConflictError } from "../errors/ConflictError";
 import { NotFoundError } from "../errors/NotFoundError";
 import { UnauthorizedError } from "../errors/UnauthorizedError";
+import { ForbiddenError } from "../errors/ForbiddenError";
 
 const errorHandler = (
   err: Error,
@@ -17,7 +18,8 @@ const errorHandler = (
   if (
     err instanceof ConflictError ||
     err instanceof NotFoundError ||
-    err instanceof UnauthorizedError
+    err instanceof UnauthorizedError ||
+    err instanceof ForbiddenError
   ) {
     statusCode = err.statusCode;
     message = err.message;
