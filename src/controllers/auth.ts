@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import * as userService from "../services/users";
-import * as supabaseService from "../services/supabase";
+import * as cloudinaryService from "../services/cloudinary";
 import bcrypt from "bcryptjs";
 import { body, validationResult } from "express-validator";
 import { ConflictError } from "../errors/ConflictError";
@@ -87,9 +87,12 @@ export const signup = [
       const newUser = await userService.createUser(userData);
 
       if (profileImage) {
-        await supabaseService.uploadProfileImage(newUser.id, profileImage);
-        const url = await supabaseService.retrievePublicUrl(newUser.id);
-        await userService.updateProfileUrl(newUser.id, url);
+        const profileUrl = await cloudinaryService.uploadProfileImage(
+          newUser.id,
+          profileImage
+        );
+
+        await userService.updateProfileUrl(newUser.id, profileUrl);
       }
 
       const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET!, {

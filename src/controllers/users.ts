@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import * as userService from "../services/users";
-import * as supabaseService from "../services/supabase";
+import * as cloudinaryService from "../services/cloudinary";
 import bcrypt from "bcryptjs";
 import { body, validationResult } from "express-validator";
 import { NotFoundError } from "../errors/NotFoundError";
@@ -77,13 +77,11 @@ export const updateUser = [
       }
 
       if (profileImage) {
-        if (user.profileUrl) {
-          await supabaseService.replaceProfileImage(id, profileImage);
-        } else {
-          await supabaseService.uploadProfileImage(id, profileImage);
-          const profileUrl = await supabaseService.retrievePublicUrl(id);
-          await userService.updateProfileUrl(id, profileUrl);
-        }
+        const profileUrl = await cloudinaryService.uploadProfileImage(
+          id,
+          profileImage
+        );
+        await userService.updateProfileUrl(id, profileUrl);
         updated = true;
       }
 
