@@ -40,12 +40,6 @@ const validateSignup = [
       }
       return true;
     }),
-
-  body("profileUrl")
-    .optional()
-    .trim()
-    .isURL()
-    .withMessage("Profile URL is Invalid"),
 ];
 
 const validateLogin = [
