@@ -14,6 +14,10 @@ export const getAllPosts = async () => {
   });
 };
 
+export const getPostById = async (id: number) => {
+  return await prisma.post.findUnique({ where: { id } });
+};
+
 export const createPost = async (data: {
   title: string;
   content: string;
@@ -28,6 +32,16 @@ export const createPost = async (data: {
         connect: { id: authorId },
       },
     },
+  });
+};
+
+export const updatePost = async (
+  id: number,
+  data: { title?: string; content?: string }
+) => {
+  return await prisma.post.update({
+    where: { id },
+    data: { ...data },
   });
 };
 
