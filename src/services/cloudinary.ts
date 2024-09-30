@@ -25,3 +25,28 @@ export const uploadProfileImage = async (
 
   return result.secure_url;
 };
+
+export const uploadBannerImage = async (
+  postId: number,
+  bannerImage: Express.Multer.File
+) => {
+  const options: UploadApiOptions = {
+    folder: "MangaBlog/banners",
+    public_id: postId.toString(),
+    overwrite: true,
+  };
+
+  const result = await new Promise<UploadApiResponse>((resolve, reject) => {
+    cloudinary.uploader
+      .upload_stream(options, (error, result) => {
+        if (error) {
+          reject(new Error(`Image upload failed: ${error.message}`));
+        } else {
+          resolve(result as UploadApiResponse);
+        }
+      })
+      .end(bannerImage.buffer);
+  });
+
+  return result.secure_url;
+};
