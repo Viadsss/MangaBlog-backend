@@ -14,6 +14,26 @@ export const getAllPosts = async () => {
   });
 };
 
-export const createPost = async (data: Prisma.PostCreateInput) => {
-  return await prisma.post.create({ data });
+export const createPost = async (data: {
+  title: string;
+  content: string;
+  authorId: number;
+}) => {
+  const { authorId, ...postData } = data;
+
+  return await prisma.post.create({
+    data: {
+      ...postData,
+      author: {
+        connect: { id: authorId },
+      },
+    },
+  });
+};
+
+export const updateBannerUrl = async (id: number, bannerUrl: string) => {
+  return await prisma.post.update({
+    where: { id },
+    data: { bannerUrl },
+  });
 };
